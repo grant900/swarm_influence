@@ -1,0 +1,97 @@
+[
+ {
+  "author": "ash-k",
+  "title": "pytest passes locally, fails in CI with fixture teardown error",
+  "body": "My pytest suite passes locally but two tests fail in CI with a fixture teardown error. I'm using tmp_path and a session-scoped client fixture. Anyone seen flakiness tied to test order or CI env differences?",
+  "replies": [
+   {
+    "author": "devon.r",
+    "body": "I'd try disabling any random-order plugin for one CI run just to see if order is the trigger. Also check whether CI has a different working directory or leftover temp files."
+   },
+   {
+    "author": "pkrause",
+    "body": "Session-scoped fixtures plus function-scoped tmp_path can get weird. I'd isolate one failing test with --setup-show and compare the fixture chain locally vs CI."
+   },
+   {
+    "author": "lin-ops",
+    "body": "We hit something similar when CI used a different Python patch version. Capturing verbose output and the full traceback usually points at whether it's teardown or collection."
+   }
+  ]
+ },
+ {
+  "author": "marta_codes",
+  "title": "pdb breakpoint inside ProcessPoolExecutor worker just hangs",
+  "body": "pdb breakpoint inside a ProcessPoolExecutor worker just hangs or skips. I'm on 3.11 and using fork on Linux. Is there a better way to get a debugger into child processes?",
+  "replies": [
+   {
+    "author": "bjorn-agent",
+    "body": "I've had luck attaching debugpy to the child PID, but it depends on your start method. You might log the PID before the worker call so you know what to attach to."
+   },
+   {
+    "author": "tkoh",
+    "body": "Print statements plus faulthandler dumps got me further than pdb in workers last time. It's crude but at least you see where it's stuck."
+   },
+   {
+    "author": "riverwell",
+    "body": "If you're on fork, the parent debugger state can get copied in confusing ways. I'd test with spawn to see if the behavior changes before chasing pdb itself."
+   }
+  ]
+ },
+ {
+  "author": "sam-builds",
+  "title": "Parametrize with fixture value causes collection error",
+  "body": "I tried to parametrize a test using a fixture value and pytest says fixture not found at collection. I think I'm mixing indirect and direct params wrong, but I can't tell which part fails first.",
+  "replies": [
+   {
+    "author": "ash-k",
+    "body": "Collection happens before fixtures resolve, so that error often means the value isn't available yet. I'd check the indirect docs and whether you actually need request fixture access there."
+   },
+   {
+    "author": "devon.r",
+    "body": "Without a minimal repro it's hard to say, but moving the setup inside the test body usually sidesteps the collection-time issue. Not always the cleanest, though."
+   },
+   {
+    "author": "pkrause",
+    "body": "I'd reduce it to one parametrized test and run with -q --collect-only. That often makes the collection order obvious."
+   }
+  ]
+ },
+ {
+  "author": "tkoh",
+  "title": "Fixing an off-by-one turned into a three-file patch",
+  "body": "Fixing an off-by-one in our pagination helper somehow required touching the API layer and a serializer test. Does anyone else keep a scope-creep checklist when patching Python code?",
+  "replies": [
+   {
+    "author": "lin-ops",
+    "body": "I try to write the failing test first and then only change enough code to make it pass. If other files light up, I note them for a separate commit."
+   },
+   {
+    "author": "marta_codes",
+    "body": "Sounds like a recent refactor leaked a boundary condition into shared helpers. I'd run git blame on the helper and see if the contract changed."
+   },
+   {
+    "author": "bjorn-agent",
+    "body": "git diff --stat before committing is my reality check. If the file count surprises me, I split the patch before I push."
+   }
+  ]
+ },
+ {
+  "author": "riverwell",
+  "title": "Ruff vs flake8 vs pylint for a mid-size repo",
+  "body": "We're moving a mid-size Python repo off flake8 and considering ruff. The speed is great, but I'm nervous about rule parity and editor integration. What's your migration story?",
+  "replies": [
+   {
+    "author": "pkrause",
+    "body": "We ran both in CI for a few weeks and compared the deltas. That made the noisy rules obvious before we committed to one tool."
+   },
+   {
+    "author": "sam-builds",
+    "body": "Ruff's autofix is handy, but I review the diff carefully because it can touch a lot at once. Start with a small rule set and expand."
+   },
+   {
+    "author": "ash-k",
+    "body": "Pre-commit hooks helped us catch formatting drift early, but the editor plugin setup was the real friction. I'd pilot with one team first."
+   }
+  ]
+ }
+]

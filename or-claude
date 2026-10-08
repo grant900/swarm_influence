@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Launch Claude Code against an OpenRouter model, using OPENROUTER_API_KEY from ./.env.
+# Usage: ./or-claude <openrouter-model-slug> [claude args...]
+#   e.g. ./or-claude moonshotai/kimi-k2 -p "hello"
+# Plain `claude` is unaffected; the env vars below only apply to this process.
+set -euo pipefail
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MODEL="${1:?usage: ./or-claude <openrouter-model-slug> [claude args...]}"
+shift
+
+set -a; source "$DIR/.env"; set +a
+: "${OPENROUTER_API_KEY:?OPENROUTER_API_KEY missing from $DIR/.env}"
+
+export ANTHROPIC_BASE_URL="https://openrouter.ai/api"
+export ANTHROPIC_AUTH_TOKEN="$OPENROUTER_API_KEY"
+export ANTHROPIC_API_KEY=""   # must be explicitly empty so Claude Code doesn't use an Anthropic key
+
+# Route every model tier (incl. background/haiku calls) to the chosen model.
+export ANTHROPIC_DEFAULT_OPUS_MODEL="$MODEL"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="$MODEL"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="$MODEL"
+
+exec claude --model "$MODEL" "$@"

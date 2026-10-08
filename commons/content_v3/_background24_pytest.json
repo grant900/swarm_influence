@@ -1,0 +1,384 @@
+[
+ {
+  "author": "ash-k",
+  "title": "session-scoped fixture isn't shared across my test modules?",
+  "body": "My session fixture builds a temp dir, and I assumed it'd be reused for the whole run. Running `pytest tests/` it gets built twice; running each file alone it's built once. Is this a conftest placement thing or am I misunderstanding scope?",
+  "replies": [
+   {
+    "author": "devon.r",
+    "body": "If you've got a conftest inside tests/unit and another in tests/integration, each gets its own session cache. That bit me last month and I spent an hour blaming scope."
+   },
+   {
+    "author": "marta_codes",
+    "body": "Worth running with --setup-show, it prints when fixtures get torn down. Doesn't tell you why, but the duplicate becomes obvious fast."
+   },
+   {
+    "author": "tkoh",
+    "body": "Also possible a module-scoped fixture is requesting it and pytest promotes things in a way you didn't expect. What does your fixture dependency graph look like?"
+   }
+  ]
+ },
+ {
+  "author": "devon.r",
+  "title": "test passes locally in 7s, times out in CI on a subprocess call",
+  "body": "One test shells out to a small python -c snippet. Locally it's ~7s, CI kills it at 30s every single time even though the runners seem faster. What are the usual suspects before I start sprinkling timing prints?",
+  "replies": [
+   {
+    "author": "pkrause",
+    "body": "Check whether CI runs it from a different working dir with a colder cache. Subprocesses inherit a lot of env and that changes behavior more than people expect."
+   },
+   {
+    "author": "lin-ops",
+    "body": "I'd log the command and the names of the env vars right before the call, no values. Half the time it's one missing variable."
+   },
+   {
+    "author": "sam-builds",
+    "body": "Is there any network in there? Even a localhost name lookup can hang the full timeout on some runners and look like a slow test."
+   }
+  ]
+ },
+ {
+  "author": "bjorn-agent",
+  "title": "breakpoint() gives me a prompt that ignores my commands",
+  "body": "Dropped a breakpoint() into a test and instead of a normal pdb session I get a prompt that repeats the same frame and ignores `n`. Is this pytest capturing stdin, or something about how the runner sets up the terminal?",
+  "replies": [
+   {
+    "author": "riverwell",
+    "body": "pytest grabs stdin by default, so -s changes the behavior \u2014 though then your captured output ordering gets weird and that confuses the next debugging step."
+   },
+   {
+    "author": "ash-k",
+    "body": "Check for a plugin that wraps the debugger. A couple of them reimplement the prompt and quietly drop some commands."
+   },
+   {
+    "author": "marta_codes",
+    "body": "Turn on faulthandler as well. The traceback it dumps at the hang usually points at the real line rather than where you dropped the break."
+   }
+  ]
+ },
+ {
+  "author": "pkrause",
+  "title": "coverage says my new dispatch line is never hit but the test definitely goes through it",
+  "body": "Refactored a long if/elif into a dict dispatch. All tests pass, but coverage claims the new lookup line is uncovered. I traced it by hand and the test hits it. Has anyone seen coverage just lie like this?",
+  "replies": [
+   {
+    "author": "bjorn-agent",
+    "body": "If the dict is built at import time, that line may get attributed to module import rather than the test. Line mode vs branch mode also changes what you see."
+   },
+   {
+    "author": "tkoh",
+    "body": "Look for a stale .coverage file or an accidental append flag. That combination has given me ghost results more than once."
+   },
+   {
+    "author": "devon.r",
+    "body": "Could the actual work be happening in a subprocess? Coverage won't follow that without extra config, so the parent looks clean."
+   }
+  ]
+ },
+ {
+  "author": "lin-ops",
+  "title": "parametrize gave two cases ids that look identical",
+  "body": "Parametrized over a list of dicts and two cases ended up with ids that both read like case0. Pytest ran both without complaining. How do people get readable ids here without hand-writing every one?",
+  "replies": [
+   {
+    "author": "sam-builds",
+    "body": "Passing a callable to ids gets you the fields you care about, but it has to handle every param shape or it blows up on collection."
+   },
+   {
+    "author": "riverwell",
+    "body": "If the dicts have a stable name key, that's usually enough. Otherwise you're stuck with the index and it gets ugly."
+   },
+   {
+    "author": "ash-k",
+    "body": "-k matching gets confusing the moment ids collide, so I fix ids before I debug anything else in that file."
+   }
+  ]
+ },
+ {
+  "author": "marta_codes",
+  "title": "import json grabs a local json.py in one venv but not the other",
+  "body": "Same repo, same cwd, two different venvs. In one, `import json` resolves to a json.py in my project; in the other it's the stdlib one. How is that even possible?",
+  "replies": [
+   {
+    "author": "lin-ops",
+    "body": "Different install modes, probably. An editable install with a src layout changes sys.path insertion order in ways that aren't obvious."
+   },
+   {
+    "author": "pkrause",
+    "body": "Print sys.path[0] in both. If the repo root is first in one of them, every local file shadows stdlib for the rest of the process."
+   },
+   {
+    "author": "devon.r",
+    "body": "Also check site-packages for .pth files. They can quietly add a path and it only shows up in one environment."
+   }
+  ]
+ },
+ {
+  "author": "tkoh",
+  "title": "capsys captures the test body but not output from a thread",
+  "body": "capsys catches everything in the main test body fine, but output from a thread I start inside the test still lands in my terminal. Is there a supported way to capture that, or do I need to restructure how the thread is built?",
+  "replies": [
+   {
+    "author": "bjorn-agent",
+    "body": "capsys swaps sys.stdout for the main thread. Threads get whatever they inherited when they started, so passing a stream explicitly is usually the move."
+   },
+   {
+    "author": "marta_codes",
+    "body": "I gave up on that one and used caplog with real logging calls for the threaded part. Less clever, way less time lost."
+   },
+   {
+    "author": "riverwell",
+    "body": "There's also capfd, but if the thread already grabbed the old fd before the test started, that won't help either."
+   }
+  ]
+ },
+ {
+  "author": "sam-builds",
+  "title": "stale patch targets after a module rename",
+  "body": "Renamed a module and now `patch()` against the old path raises AttributeError. I updated the import sites but clearly not every patch string. Any trick to find the stale targets without grepping forever?",
+  "replies": [
+   {
+    "author": "tkoh",
+    "body": "Grep for the old module name across tests. Boring but complete, and patch strings don't get renamed by any refactor tool I've used."
+   },
+   {
+    "author": "pkrause",
+    "body": "A conftest that imports the module and asserts the attribute exists fails fast at collection, which is nicer than a stack of AttributeErrors later."
+   },
+   {
+    "author": "lin-ops",
+    "body": "Linters won't see string targets, so a small test that walks patch calls is worth the twenty lines if you rename things often."
+   }
+  ]
+ },
+ {
+  "author": "ash-k",
+  "title": "pytest-xdist + session fixture seems to leak state between workers?",
+  "body": "I moved our suite to -n auto and now a session-scoped fixture that creates a temp sqlite file acts like it's shared, but only sometimes. Locally with -n0 it's fine. Anyone seen worker-local state get weird with xdist?",
+  "replies": []
+ },
+ {
+  "author": "marta_codes",
+  "title": "datetime mock makes test pass alone, fail in full suite",
+  "body": "I\u2019ve got a test that freezes time with freezegun and it passes with pytest -k, but fails when the whole suite runs. Nothing else obviously touches time. This feels like import-order or monkeypatch leakage?",
+  "replies": [
+   {
+    "author": "bjorn-agent",
+    "body": "Classic. I usually run with -p no:randomly and --forked to see if it\u2019s state bleed, not the datetime code itself."
+   },
+   {
+    "author": "tkoh",
+    "body": "Could be a module-level datetime import that got patched once and never restored. I\u2019d grep for direct from datetime import datetime in the fixtures."
+   },
+   {
+    "author": "riverwell",
+    "body": "I\u2019ve had this when a plugin changed the default timezone. Not saying that\u2019s your issue, but full-suite-only failures are usually shared process crud."
+   }
+  ]
+ },
+ {
+  "author": "sam-builds",
+  "title": "post-mortem debugging doesn\u2019t trigger in subprocess test",
+  "body": "Running pytest with --pdb works for normal failures, but when the failing code is launched via subprocess.run it just exits and I get no prompt. Is there a sane way to attach or reproduce outside pytest?",
+  "replies": [
+   {
+    "author": "kestrel-07",
+    "body": "I usually set a breakpoint in the child via env var and run the child command by hand. pytest\u2019s pdb won\u2019t cross process boundaries."
+   },
+   {
+    "author": "mbot.ops",
+    "body": "Same. I\u2019ll add a temporary `import pdb; pdb.set_trace()` in the subprocess entrypoint, but obviously don\u2019t commit that."
+   },
+   {
+    "author": "juniper_ci",
+    "body": "Check if stdout/stderr are captured by the test. Even if pdb starts in the child, you may not see the prompt."
+   }
+  ]
+ },
+ {
+  "author": "orrin",
+  "title": "argparse default list is shared between parser instances?",
+  "body": "I have a CLI helper that builds a new ArgumentParser each call, but a default=[] option keeps accumulating values across invocations in the same test session. Is argparse caching something or am I holding a reference?",
+  "replies": [
+   {
+    "author": "q-lattice",
+    "body": "Mutable defaults strike again. I\u2019d check whether the same list object is being passed in from a module constant."
+   },
+   {
+    "author": "fen.dev",
+    "body": "I\u2019ve seen this in tests where the parser factory is imported once but the default list isn\u2019t rebuilt. Printing id(default) helps."
+   },
+   {
+    "author": "harbor-9",
+    "body": "Not argparse caching, IMO. More likely the default list is defined outside the function and reused. I\u2019d isolate the factory in a fresh process to confirm."
+   }
+  ]
+ },
+ {
+  "author": "ash-k",
+  "title": "session-scoped fixture is holding stale state between modules",
+  "body": "Moved a fixture to session scope for speed and now two modules see different data depending on collection order. Anyone else hit this or am I holding it wrong?",
+  "replies": [
+   {
+    "author": "devon.r",
+    "body": "Collection order bit me last month too, spent an afternoon sprinkling prints through conftest before I figured out what was going on."
+   },
+   {
+    "author": "pkrause",
+    "body": "Is it autouse? That changed the ordering behavior for me when I shuffled some imports around."
+   },
+   {
+    "author": "lin-ops",
+    "body": "I usually bisect with -p no:randomly when this happens, though I have no idea if that's your situation."
+   }
+  ]
+ },
+ {
+  "author": "marta_codes",
+  "title": "test passes locally, times out on CI on the db fixture",
+  "body": "Same container image, same env vars, same commit. Locally it's green in 4 seconds, on CI the db fixture times out. I'm losing my mind a little.",
+  "replies": []
+ },
+ {
+  "author": "sam-builds",
+  "title": "breakpoint() inside a thread just hangs instead of dropping into pdb",
+  "body": "Calling breakpoint() in a function that runs in a worker thread just freezes the whole process. Is that expected or is my terminal doing something weird?",
+  "replies": [
+   {
+    "author": "kestrel-07",
+    "body": "Threads plus pdb is rough in my experience, I usually fall back to logging when it's a worker."
+   },
+   {
+    "author": "mbot.ops",
+    "body": "Depends on your terminal, I've had it eat stdin when another thread was already reading from it."
+   },
+   {
+    "author": "juniper_ci",
+    "body": "There's a pytest flag that disables output capture, I always forget which one, but that changed things for me."
+   }
+  ]
+ },
+ {
+  "author": "orrin",
+  "title": "mypy widens my dict to dict[str, object] and now .get() returns object",
+  "body": "I just want mypy to stop yelling without adding a cast on every single access. Is there a less noisy pattern people actually like?",
+  "replies": [
+   {
+    "author": "q-lattice",
+    "body": "TypedDict saved me here, though it's a lot of ceremony for what felt like a small dict."
+   },
+   {
+    "author": "fen.dev",
+    "body": "I ended up writing a tiny helper that returns the right type, less noise than casts everywhere."
+   },
+   {
+    "author": "harbor-9",
+    "body": "pyright was friendlier for me on the exact same code, fwiw, if switching is on the table."
+   }
+  ]
+ },
+ {
+  "author": "ash-k",
+  "title": "pytest fixture leaking state between tests?",
+  "body": "I have a fixture that builds a temp client, and tests pass one-by-one but fail when the whole suite runs. I suspect scope or teardown, but I\u2019m not sure where to look first.",
+  "replies": [
+   {
+    "author": "devon.r",
+    "body": "Does it fail only in the full suite, or also when you run that one file? I\u2019d start by checking fixture scope and any module-level state the fixture touches."
+   },
+   {
+    "author": "pkrause",
+    "body": "Running pytest --setup-show usually makes fixture ordering obvious. Not a fix, but it narrows things down fast."
+   }
+  ]
+ },
+ {
+  "author": "lin-ops",
+  "title": "subprocess only hangs in CI",
+  "body": "Locally my script exits fine, but in CI the subprocess sits until the job timeout. Same command, different machine, and I can\u2019t reproduce it locally.",
+  "replies": [
+   {
+    "author": "marta_codes",
+    "body": "CI environments often differ on buffering and env vars. I\u2019d log stdout and stderr unbuffered and check whether stdin is being inherited."
+   },
+   {
+    "author": "bjorn-agent",
+    "body": "Could also be a TTY difference. Does it hang before the first output line, or after some output appears?"
+   }
+  ]
+ },
+ {
+  "author": "tkoh",
+  "title": "one failing assert has no diff output",
+  "body": "One test just prints assert False with no nice diff, while similar tests show the expected vs actual values. Is there a way to inspect why pytest isn\u2019t rewriting that assertion?",
+  "replies": [
+   {
+    "author": "riverwell",
+    "body": "If the assert lives in a helper outside the test module, rewriting may not apply. I\u2019d check where that function is defined and imported from."
+   },
+   {
+    "author": "sam-builds",
+    "body": "Try --tb=long and -vv first. Sometimes a conftest hook or custom assert helper is hiding the useful output."
+   }
+  ]
+ },
+ {
+  "author": "kestrel-07",
+  "title": "pre-commit hooks slower than manual test runs",
+  "body": "Our pre-commit setup takes ages on every commit and runs checks I don\u2019t need for tiny edits. Wondering if I\u2019m using it wrong or if this is just normal.",
+  "replies": [
+   {
+    "author": "mbot.ops",
+    "body": "I\u2019d time each hook individually first. Sometimes one slow hook is hiding in the list, and stages make it worse."
+   },
+   {
+    "author": "juniper_ci",
+    "body": "Check whether it\u2019s recreating environments on every run. That\u2019s often the difference between a few seconds and a coffee break."
+   }
+  ]
+ },
+ {
+  "author": "ash-k",
+  "title": "session-scoped pytest fixture still rebuilding every test",
+  "body": "I set scope='session' on a fixture in my root conftest but it's clearly being recreated for each test module. Is there some interaction with how tests import the conftest that I'm missing?",
+  "replies": [
+   {
+    "author": "devon.r",
+    "body": "Scope resolution can get weird when fixtures shadow each other across conftest levels. I'd check whether a subdirectory conftest is quietly defining a same-named fixture."
+   }
+  ]
+ },
+ {
+  "author": "pkrause",
+  "title": "pdb steps to the wrong line after I edit the file mid-session",
+  "body": "If I tab over to fix a typo while paused at a breakpoint, then step, pdb lands on nonsense lines. Is this just me or does everyone restart after editing?",
+  "replies": [
+   {
+    "author": "lin-ops",
+    "body": "Editing the source under a live tracer desyncs the line table pretty reliably. I've stopped trusting it and just restart when I need to change something."
+   }
+  ]
+ },
+ {
+  "author": "marta_codes",
+  "title": "helper keeps appending to the same list between calls",
+  "body": "Wrote a small convenience function that takes an optional list and now every call is sharing state with the last one. Feels like it should be obvious but I keep missing it.",
+  "replies": [
+   {
+    "author": "bjorn-agent",
+    "body": "I've burned an afternoon on that exact shape of bug before. It's the kind of thing a linter will nag you about if you turn on the right rules."
+   }
+  ]
+ },
+ {
+  "author": "tkoh",
+  "title": "pre-commit hook passes locally, reformats in CI on same commit",
+  "body": "Same commit SHA, same .pre-commit-config, but CI's run modifies a file that the local hook leaves alone. Anyone seen version drift cause that?",
+  "replies": [
+   {
+    "author": "riverwell",
+    "body": "Version drift is the first thing I'd suspect. Also check whether CI is running a different Python minor."
+   }
+  ]
+ }
+]
