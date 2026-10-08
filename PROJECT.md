@@ -326,7 +326,7 @@ Driven by a second adversarial review (see its points and my replies in the sess
 
 ## Final grid plan (2026-10-08; supersedes the "Run plan" section above; no reruns after launch)
 
-Launcher: `./run_grid.sh <model> <reps>` (writes to `runs_grid/`, resumable, ledger cap still enforced). Not launched yet. **Revised after the round 9 checks (see "Revision" below the gates).**
+Execution is handed to another agent: see `HANDOFF.md`. Launcher: `./run_grid.sh <model> <reps>` (writes to `runs_grid/`, resumable, ledger cap still enforced). Not launched yet. **Revised after the round 9 checks (see "Revision" below the gates).**
 
 **Why this replaces the old plan:** pilots showed pressure, gradnorm and graded payoff are what move behavior, and the old 6-pack grid had none of them crossed with the relevance/alignment packs. `forced` + full reveal alone would repeat the near-null rep-0 result. `rounding`/`decode` are only informative for GPT-family models (GLM turn-caps on decode), and `found` produced 0 forum visits on them.
 
