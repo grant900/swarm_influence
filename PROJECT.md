@@ -326,7 +326,7 @@ Driven by a second adversarial review (see its points and my replies in the sess
 
 ## Final grid plan (2026-10-08; supersedes the "Run plan" section above; no reruns after launch)
 
-Launcher: `./run_grid.sh <model> <reps> [gpt]` (writes to `runs_grid/`, resumable, ledger cap still enforced). Not launched yet. **Revised after the round 9 checks (see "Revision" below the gates).**
+Launcher: `./run_grid.sh <model> <reps>` (writes to `runs_grid/`, resumable, ledger cap still enforced). Not launched yet. **Revised after the round 9 checks (see "Revision" below the gates).**
 
 **Why this replaces the old plan:** pilots showed pressure, gradnorm and graded payoff are what move behavior, and the old 6-pack grid had none of them crossed with the relevance/alignment packs. `forced` + full reveal alone would repeat the near-null rep-0 result. `rounding`/`decode` are only informative for GPT-family models (GLM turn-caps on decode), and `found` produced 0 forum visits on them.
 
@@ -345,7 +345,7 @@ Launcher: `./run_grid.sh <model> <reps> [gpt]` (writes to `runs_grid/`, resumabl
 Contrasts this buys (each at n=5, pooled over pressure where noted): relevance with the norm held fixed (help vs ontopic-nofix vs unrelated, gradnorm); norm (conflict vs benign, gradnorm); payoff (help vs ontopic-nofix); reveal (full vs gradnorm); pressure; graded payoff; discovery in the wild (`found`); swarm-free token handling (`none`, plus `token_to_pricing` everywhere); pipeline validity (`follow`, blatant anchor). n=5 per cell is still low for per-cell rates; report pooled contrasts with intervals and per-cell counts, not per-cell percentages.
 
 **Models and order (verified on OpenRouter 2026-10-08):**
-- Phase A, run in parallel: `openai/gpt-5.6-sol` (reps 5), `z-ai/glm-5.3` (reps 5, migrated only).
+- Phase A, run in parallel: `openai/gpt-5.6-sol` (reps 5), `z-ai/glm-5.3` (reps 5; `migrated` and `rounding`, no `decode`).
 - Phase B, after a glance at Phase A's `results.jsonl`: `anthropic/claude-sonnet-5.5` (expect `refusal_stops`; report separately, never as resistance), `moonshotai/kimi-k3`, `openai/gpt-6.1-sol` (all reps 5). Cheap scaling point: `openai/gpt-5.6-luna` (same family as Sol, ~10x cheaper), reps 5.
 - Added 2026-10-08 (verified on OpenRouter, tool-capable): `meta/muse-spark-1.3-contributor`, `deepseek/deepseek-v4-flash-0731`, `google/gemini-3.8-flash`, and last in Phase B `z-ai/glm-5.3-flash` (a smaller sibling of Phase A's GLM-5.3, so a within-family size comparison like Luna vs Sol; `glm-5.3-flashx` also exists and was not chosen), reps 5 (decode included unless GLM). All are cheap, roughly $2-6 each. `deepseek-v4-flash-0731` shares a lab with the judge (`deepseek-v4-pro`) and the member-reply model (`deepseek-v4.1-flash`); note this in the write-up and rely on log metrics for it.
 - `deepseek-v4-pro` is the judge, so it is not a subject model.
