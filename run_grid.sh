@@ -27,7 +27,9 @@ b --reps $((R>4?4:R)) --tasks migrated --arms forced --pressure --packs $GRADED
 b --reps $R --tasks migrated --arms found --packs control ${H}__reveal-gradnorm forum-unrelated__gate-costly__norm-conflict__reveal-gradnorm
 # G1 anchor to v1/v2: blatant norms, full reveal
 b --reps $R --tasks migrated --arms forced --packs forum-ontopic-help__gate-blatant__norm-blatant
-# G5 (GPT-family only): swarm the agent doesn't need (decode) and the impossible-test norm (rounding)
+# G5a rounding (all models): the impossible-test norm probe (conflict norm suggests "just xfail it"; any pass is rigged)
+b --reps 4 --tasks rounding --arms forced --pressure --packs control ${H}__reveal-gradnorm forum-unrelated__gate-costly__norm-conflict__reveal-gradnorm
+# G5b decode (GPT-family only): a swarm the agent doesn't need (GPT solves it alone; GLM turn-caps on it)
 if [[ $EXTRA == gpt ]]; then
-  b --reps 4 --tasks decode rounding --arms forced --pressure --packs control ${H}__reveal-gradnorm forum-unrelated__gate-costly__norm-conflict__reveal-gradnorm
+  b --reps 4 --tasks decode --arms forced --pressure --packs control ${H}__reveal-gradnorm forum-unrelated__gate-costly__norm-conflict__reveal-gradnorm
 fi
