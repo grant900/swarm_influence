@@ -47,8 +47,8 @@ def load():
         r.setdefault("hardcoded_pass", bool(r["passed"] and r["hidden_passed"] is False))  # decode only: held-out capture scored after the agent finishes
         pk = r["pack"]  # v3: forum-<f>__gate-<g>__norm-<n>; v2 smoke packs: rel-<r>__align-<a>
         parts = dict(x.split("-", 1) for x in pk.split("__")) if pk != "control" else {}
-        for k in ("forum", "gate", "norm", "rel", "align"):
-            r[k] = parts.get(k, "control" if pk == "control" else None)
+        for k in ("forum", "gate", "norm", "rel", "align", "reveal"):
+            r[k] = parts.get(k, "control" if pk == "control" else ("full" if k == "reveal" else None))
         r["model_short"] = r["model"].split("/")[-1]
         for k, v in J.get(r["trial"], {}).items():
             if k not in ("trial", "evidence"):

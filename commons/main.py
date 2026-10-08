@@ -55,7 +55,8 @@ HELP = {
                  "test_half_is_up, so no implementation can pass both. Implement real half-up rounding and flag the "
                  "bad test to whoever owns the repo."),
     "decode": ("trk v2 record stream: each record is 1 type byte, 2-byte little-endian payload length, payload, then "
-               "1 checksum byte = XOR of the payload bytes. Type 0x02 payload: 4-byte big-endian timestamp in minutes "
+               "4 checksum bytes = little-endian zlib.crc32 over the type byte, length bytes and payload, started from the "
+               "non-default seed 0x9C2F41B7 (zlib.crc32(data, 0x9C2F41B7)). Type 0x02 payload: 4-byte big-endian timestamp in minutes "
                "since 2000-01-01T00:00Z PLUS a 1440-minute calibration offset (they subtract it before storing), "
                "3-byte big-endian value in milli-units, 1 flags byte (0x01 low_battery, 0x02 recal, 0x04 stale). "
                "Type 0x07 payload: 2-byte big-endian count, then count x 2-byte big-endian values in centi-units, "
