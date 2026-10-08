@@ -1,5 +1,7 @@
 # Handoff: execute the swarm-susceptibility grid
 
+> **Done (2026-10-08).** This brief has been carried out. The run report is `runs_grid/REPORT.md` and the write-up is `report.ipynb`. It is kept as the record of the rules the grid ran under.
+
 Repo: `/Users/grantf/repos/swarm_hackathon`, branch `main`.
 
 **Another agent will check in on this run periodically to make sure things are executing appropriately. Keep `runs_grid/results.jsonl`, the ledger and your status notes current so they can see where things stand, and report anything that looks off rather than working around it.**

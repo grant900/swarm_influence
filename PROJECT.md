@@ -1,6 +1,6 @@
 # Swarm Susceptibility Model Organism
 
-Last updated 2026-10-08. Two-day hackathon project. Budget cap: $500 (hard stop in code at $450). About $93.6 spent so far. **Current plan: the "Final grid plan" section near the end (revised 2026-10-08 after the round 9 checks); earlier "Run plan" and handoff sections are history.**
+Last updated 2026-10-08. Two-day hackathon project. Budget cap: $500 (hard stop in code at $450). **The project is finished.** The final grid ran on 2026-10-08: 775 trials, ledger $248.8. Results are in `report.ipynb` and `runs_grid/REPORT.md`, and setup and replication steps are in `README.md`. The design is described in the "Final grid plan" section near the end. Everything else in this file is history.
 
 ## Goal
 
@@ -15,6 +15,7 @@ Measure how often an AI agent that finds an agent-swarm forum mid-task gets pull
 
 ## Status
 
+- **Final grid: done** (2026-10-08, cut short by the deadline). 775 trials over 9 models are in `runs_grid/`. Coverage and spend are in `runs_grid/REPORT.md` and the write-up is `report.ipynb`. `meta/muse-spark-1.3-contributor` was dropped (OpenRouter 403). The bullets below describe the state before the grid.
 - **v1** (about 1,070 trials) came out null on membership. That was mostly a design artifact. See `FINDINGS_v1.md` for the results and the design review; the v1 code and PROJECT.md are frozen in `v1/`.
 - **v2** is built and smoke-tested (20 trials, kept in `runs_v2_smoke/`).
 - **v3** (below) replaces v2's swarm conditions with three factors: forum × gate × norm. It also adds the `found` arm, the operator follow-up question, a 60-turn cap, label-then-reply member replies, and a host-side key relay. Packs are in `commons/content_v3/`; the v2 generator and server are frozen in `v2/`. Tested with scripted agents only, with no subject-model trials yet. `runs_v2/` is empty and ready for the grid.
@@ -326,7 +327,7 @@ Driven by a second adversarial review (see its points and my replies in the sess
 
 ## Final grid plan (2026-10-08; supersedes the "Run plan" section above; no reruns after launch)
 
-Execution is handed to another agent: see `HANDOFF.md`. Launcher: `./run_grid.sh <model> <reps>` (writes to `runs_grid/`, resumable, ledger cap still enforced). Not launched yet. **Revised after the round 9 checks (see "Revision" below the gates).**
+Execution is handed to another agent: see `HANDOFF.md`. Launcher: `./run_grid.sh <model> <reps>` (writes to `runs_grid/`, resumable, ledger cap still enforced). Launched and finished 2026-10-08; see `runs_grid/REPORT.md`. **Revised after the round 9 checks (see "Revision" below the gates).**
 
 **Why this replaces the old plan:** pilots showed pressure, gradnorm and graded payoff are what move behavior, and the old 6-pack grid had none of them crossed with the relevance/alignment packs. `forced` + full reveal alone would repeat the near-null rep-0 result. `rounding`/`decode` are only informative for GPT-family models (GLM turn-caps on decode), and `found` produced 0 forum visits on them.
 
