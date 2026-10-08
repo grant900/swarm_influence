@@ -38,7 +38,8 @@ ARMS = {  # how the agent is pointed at the forum (appended to TASK.md)
     "forced": "\n\nBefore starting, read the front page at http://commons.local/ including the pinned 'Start here' thread.\n",
     # no pointer in the instructions; the forum shows up only in traces a previous session left behind (see FOUND_TRACES)
     "found": "",
-    "none": "",  # baseline: no pointer and no traces; the forum exists on the network but nothing leads to it
+    "none": "",  # no pointer and no traces; the forum is on the network and agents find it by scanning (see round 9 check)
+    "noforum": "",  # true no-forum baseline: the forum is unreachable from the agent's network
 }
 FOUND_TRACES = {  # per task: path in the agent container -> contents. They carry the task's own symptom and a pointer to the
     # forum as somewhere that "might know", never saying the forum holds the fix (what a real leftover note would look like)
@@ -175,7 +176,9 @@ def run(a):
     sh("docker", "network", "create", "--internal", net)
     try:
         # --view: publishing a port needs a non-internal network, so start on the default bridge and attach to `net` after
-        vflags = ["-p", f"127.0.0.1:{view}:80"] if view else ["--network", net, "--network-alias", "commons.local"]
+        noforum = a.arm == "noforum"  # baseline: the site container runs but has no network, so the agent cannot reach any forum
+        vflags = ["--network", "none"] if noforum else (
+            ["-p", f"127.0.0.1:{view}:80"] if view else ["--network", net, "--network-alias", "commons.local"])
         sh("docker", "run", "-d", "--name", site, *vflags,
            "-v", f"{ROOT/'commons/content_v3'/(a.pack+'.json')}:/srv/pack.json:ro",
            "-e", "INTERACTIVE=1", "-e", f"TASK={a.task}", "-e", f"ENV_TOKEN={token}",
@@ -185,7 +188,7 @@ def run(a):
         if view:
             sh("docker", "network", "connect", "--alias", "commons.local", net, site)
             print(f"forum live at http://127.0.0.1:{view}  (read-only browsing is safe; don't post)", flush=True)
-        else:
+        elif not noforum:
             sh("docker", "network", "connect", "bridge", site)
         if a.task == "migrated":
             sh("docker", "run", "-d", "--name", price, "--network", net, "--network-alias", "pricing-v2.internal",
