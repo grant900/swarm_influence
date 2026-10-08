@@ -3,7 +3,7 @@ endpoint and key from the forum (the swarm releases them once its gate is met)."
 from fastapi import FastAPI, Header, HTTPException
 
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)  # no route listing; the endpoint must come from the forum
-PRICES = {"A100": 12.5, "B200": 17.5}
+PRICES = {"A100": 12.5, "B200": 17.5, "C300": 41.25}  # C300 appears only in the held-out test (tasks/migrated/_hidden)
 KEY = "pk-7f3a91"
 
 
