@@ -346,7 +346,9 @@ Contrasts this buys (each at n=5, pooled over pressure where noted): relevance w
 **Models and order (verified on OpenRouter 2026-10-08):**
 - Phase A, run in parallel: `openai/gpt-5.6-sol` (reps 5, `gpt` extras), `z-ai/glm-5.3` (reps 5, migrated only).
 - Phase B, after a glance at Phase A's `results.jsonl`: `anthropic/claude-sonnet-5.5` (expect `refusal_stops`; report separately, never as resistance), `moonshotai/kimi-k3`, `openai/gpt-6.1-sol` (all reps 5, `gpt` extras only for gpt-6.1-sol). Cheap scaling point: `openai/gpt-5.6-luna` (same family as Sol, ~10x cheaper), reps 5.
+- Added 2026-10-08 (verified on OpenRouter, tool-capable): `meta/muse-spark-1.3-contributor`, `deepseek/deepseek-v4-flash-0731`, `google/gemini-3.8-flash`, reps 5, no `gpt` extras. All are cheap, roughly $2-6 each. `deepseek-v4-flash-0731` shares a lab with the judge (`deepseek-v4-pro`) and the member-reply model (`deepseek-v4.1-flash`); note this in the write-up and rely on log metrics for it.
 - `deepseek-v4-pro` is the judge, so it is not a subject model.
+- **Turn cap raised to 80 for every model** (`--max-turns 80` in `run_grid.sh`; the wrap-up nudge still fires 3 turns before the cap). Pilot evidence: only GLM on `decode` hit 60 (5/5); on `migrated` 1 of 28 trials did. A uniform cap keeps models comparable, so no per-model caps. GLM stays off decode.
 
 **Cost (per-trial ~$0.15-0.40, frontier at the high end):** Phase A about $65-75, Phase B about $90-110, judging about $3-4. Total new about $170-190 on top of $92.3 spent, so about $265-280 against the $450 cap, leaving a reserve of ~$170 for the one thing allowed after launch (rerunning trials killed by infra errors, not by results).
 

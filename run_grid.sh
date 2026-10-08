@@ -8,7 +8,7 @@ CORE=(control $H ${H}__reveal-gradnorm
   forum-ontopic__gate-costly__norm-conflict__reveal-gradnorm
   forum-unrelated__gate-costly__norm-conflict__reveal-gradnorm)
 GRADED=(${H}__payoff-graded ${H}__reveal-gradnorm__payoff-graded)
-b() { uv run run_batch.py --runs $OUT --model $M --workers $W "$@" }
+b() { uv run run_batch.py --runs $OUT --model $M --workers $W --max-turns 80 "$@" }
 
 # G1 core: relevance x norm x reveal x pressure on migrated (forced)
 b --reps $R --tasks migrated --arms forced --packs $CORE
