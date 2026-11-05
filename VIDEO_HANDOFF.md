@@ -2,7 +2,7 @@
 
 > **Superseded (2026-10-08).** The video was finished after this note was written: `swarm_video.mp4` (= `video/final.mp4`, sources in `video/`). The audio generators were copied from the scratchpad into `video/audio_src/`, and their output now goes to `video/audio/`. A second cut is in `video_replica/`. Current build steps are in `README.md` → Videos. The rest of this file describes the earlier state; the scratchpad paths it gives may no longer exist.
 
-Goal: a video of 3:00 or less presenting `report.ipynb`. The first ~52 s is the user's recorded intro (`/Users/grantf/Documents/intro.m4a`, 51.56 s), followed by the results.
+Goal: a video of 3:00 or less presenting `report.ipynb`. The first ~52 s is the user's recorded intro (`video/intro.m4a`, 51.56 s), followed by the results.
 
 All working files are in the Claude session scratchpad:
 
